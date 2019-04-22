@@ -4,6 +4,7 @@
 FileVisualizer::FileVisualizer(std::string fileName) : fileStream(fileName, std::ios_base::out){
 }
 
+// rewrite file
 void FileVisualizer::showState(const intMatrix &state) {
     std::string outString = stateToString(state);
     fileStream << outString;

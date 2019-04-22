@@ -13,6 +13,7 @@ intMatrix World::getCurrState() {
     return *currMap;
 }
 
+// update all cells
 void World::liveOneGen() {
     int locAliveCnt = 0;
     for (int i = 0; i < length; i++) {
@@ -40,23 +41,16 @@ int World::getWidth() {
     return width;
 }
 
+// count all alive cells around given cell index
 int World::countLocalAlive(int i, int j) {
     int count = 0;
-    // 1
     count += i > 0 ? currMap->at(i - 1).at(j) : 0;
-    // 2
     count += (i > 0 && j < width - 1) ? currMap->at(i - 1).at(j + 1) : 0;
-    // 3
     count += j < width - 1 ? currMap->at(i).at(j + 1) : currMap->at(i).at(0);
-    // 4
     count += (i < length - 1 && j < width - 1) ? currMap->at(i + 1).at(j + 1) : 0;
-    // 5
     count += i < length - 1 ? currMap->at(i + 1).at(j) : currMap->at(0).at(j);
-    // 6
     count += (i < length - 1 && j > 0) ? currMap->at(i + 1).at(j - 1) : 0;
-    // 7
     count += j > 0 ? currMap->at(i).at(j - 1) : currMap->at(i).at(length - 1);
-    // 8
     count += (i > 0 && j > 0) ? currMap->at(i - 1).at(j - 1) : 0;
 
     return count;
