@@ -32,7 +32,6 @@ public:
             saveState(stateHash);
             cycleRepeat = isStateRepeated(stateHash, lastStates.size()-1);
             consRepeat = isStateRepeated(stateHash, 1);
-            std::cout << stateHash << std::endl;
 
             usleep(generationDelay);
             world.liveOneGen();
@@ -97,10 +96,22 @@ size_t calcMatrixHash(const intMatrix &state) {
     return seedOuter;
 }
 
-int main() {
-    auto map = readInitialWorld("points.txt");
-    LifeGame *lf = new LifeGame(map);
-    lf->play();
-    std::cout << "You died" << std::endl;
+int main(int argc, char **argv) {
+    if (argc > 1) {
+        std::string fileName(argv[1]);
+        try {
+            auto map = readInitialWorld(fileName);
+            LifeGame *lf = new LifeGame(map);
+            lf->play();
+            std::cout << "The end" << std::endl;
+
+        }
+        catch (std::invalid_argument &e) {
+            std::cout << e.what();
+            exit(1);
+        }
+    } else {
+        std::cout << "No file with points was specified, exiting.." << std::endl;
+    }
     return 0;
 }
