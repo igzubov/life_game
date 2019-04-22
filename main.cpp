@@ -7,26 +7,58 @@
 
 
 using intMatrix = std::vector<std::vector<int>>;
-size_t calcStateHash(const intMatrix &state);
+
+// delay between generations in microsedonds
+const int generationDelay = 2000000;
+
+size_t calcMatrixHash(const intMatrix &state);
 
 class LifeGame {
 public:
-    LifeGame(std::shared_ptr<intMatrix> map) : world(map) {
+    LifeGame(std::shared_ptr<intMatrix> map, const int repeatStep = 2) : world(map), lastStates(repeatStep+1), lastStatesIndex(-1), genCount(0) {
         vis = new FileVisualizer("gameOutput.txt");
     }
 
     void play() {
-        while (true) {
+        bool cycleRepeat = false;
+        bool consRepeat = false;
+        size_t stateHash = 0;
+        while (!consRepeat && !cycleRepeat) {
+            // visualize
             vis->showState(world.getCurrState());
-            std::cout << calcStateHash(world.getCurrState()) << std::endl;
-            usleep(10000000);
+
+            // calc hash for current world state & check end conditions
+            stateHash = calcMatrixHash(world.getCurrState());
+            saveState(stateHash);
+            cycleRepeat = isStateRepeated(stateHash, lastStates.size()-1);
+            consRepeat = isStateRepeated(stateHash, 1);
+            std::cout << stateHash << std::endl;
+
+            usleep(generationDelay);
             world.liveOneGen();
+            genCount++;
         }
     }
 
 private:
     World world;
     Visualizer *vis;
+    std::vector<size_t> lastStates;
+    int lastStatesIndex;
+    int genCount;
+
+    bool isStateRepeated(size_t stateHash, int step) {
+        int prevIndex = lastStatesIndex - step;
+        if (prevIndex < 0) {
+            prevIndex = lastStates.size() + prevIndex;
+        }
+        return stateHash == lastStates.at(prevIndex);
+    }
+
+    void saveState(size_t stateHash) {
+        lastStatesIndex = (lastStatesIndex+1) % lastStates.size();
+        lastStates.at(lastStatesIndex) = stateHash;
+    }
 };
 
 
@@ -53,9 +85,9 @@ std::shared_ptr<intMatrix> readInitialWorld(const std::string fileName) {
     return map;
 }
 
-size_t calcStateHash(const intMatrix &state) {
+size_t calcMatrixHash(const intMatrix &state) {
     size_t seedOuter = state.size();
-    for(int i = 0; i < state.size(); i++) {
+    for (int i = 0; i < state.size(); i++) {
         size_t seedInner = state.at(0).size();
         for (int j = 0; j < state.at(0).size(); j++) {
             seedInner ^= state.at(i).at(j) + 0x9e3779b9 + (seedInner << 6) + (seedInner >> 2);
@@ -69,6 +101,6 @@ int main() {
     auto map = readInitialWorld("points.txt");
     LifeGame *lf = new LifeGame(map);
     lf->play();
-    std::cout << "Hello, World!" << std::endl;
+    std::cout << "You died" << std::endl;
     return 0;
 }
